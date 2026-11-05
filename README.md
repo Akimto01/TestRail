@@ -6,7 +6,8 @@ Cílem je vyzkoušet si zápis výsledků automatizovaných testů do TestRailu.
 
 ## Požadavky
 
-- Windows 10 (lokátory jsou určené pro klasický Notepad, ve Windows 11 je potřeba je upravit)
+- Windows 10 nebo 11 s klasickým Notepadem. Ve Windows 11 vypni alias nového Notepadu:
+  Nastavení → Aplikace → Rozšířené nastavení aplikací → Aliasy pro spouštění aplikací → Poznámkový blok (notepad.exe)
 - Python 3.10 až 3.12 (kvůli pythonnet, na kterém FlaUILibrary stojí)
 - .NET Framework 4.8 (ve Windows 10 bývá nainstalovaný)
 
@@ -42,8 +43,21 @@ Strom prvků a jejich vlastnosti (ClassName, AutomationId, Name) zjistíš nást
 [FlaUInspect](https://github.com/FlaUI/FlaUInspect). Lokátory jsou XPath nad stromem
 Microsoft UI Automation.
 
-## Další kroky (integrace s TestRailem)
+## Integrace s TestRailem
 
-1. V TestRailu založit test casy odpovídající testům v `tests/notepad.robot`.
-2. Doplnit k testům tagy s ID casů z TestRailu.
-3. Posílat výsledky do test runu (listener knihovny robotframework-testrail, nebo TRCLI z `output.xml`).
+Testy jsou namapované na test casy v TestRailu tagem `testrailid=<ID casu>` (C12 až C16 v projektu
+„Notepad – FlaUI“). Výsledky se zapisují do test runu listenerem `TestRailListener` z balíčku
+`u-robotframework-testrail` (fork knihovny robotframework-testrail, který funguje i s TestRail Cloud).
+
+Přihlašovací údaje se čtou z proměnných prostředí, do repozitáře je nikdy neukládej:
+
+```
+setx TESTRAIL_USER "tvuj@email.cz"
+setx TESTRAIL_API_KEY "api_klic_z_testrailu"
+```
+
+Spuštění s odesláním výsledků do runu R3:
+
+```
+.\run-testrail.ps1 -RunId 3
+```
