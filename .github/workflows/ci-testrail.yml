@@ -75,6 +75,7 @@ jobs:
             parse_robot \
             "${RUN_ARGS[@]}" \
             --case-matcher auto \
+            --case-fields "template_id:2" \
             --title "GitHub Actions #$BUILD_NUMBER - $NOW - tag:$TAG" \
             --milestone-id "$TESTRAIL_MILESTONE_ID" \
             --run-description "$RUN_URL" \
