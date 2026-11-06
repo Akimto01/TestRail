@@ -49,6 +49,7 @@ trcli $confirm `
     parse_robot `
     --run-id $RunId `
     --case-matcher auto `
+    --case-fields "template_id:2" `
     --title "Notepad FlaUI lokalni-beh - $now - tag:$Tag" `
     --milestone-id $MilestoneId `
     --run-description "Lokalni beh z pocitace $env:COMPUTERNAME" `
