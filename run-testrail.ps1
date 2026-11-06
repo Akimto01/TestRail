@@ -8,6 +8,8 @@
 #   .\run-testrail.ps1                     # vychozi hodnoty (run 4, milestone 3, -n)
 #   .\run-testrail.ps1 -Include smoke      # jen testy s tagem smoke
 #   .\run-testrail.ps1 -AutoCreate         # povoli zalozit chybejici casy (-y)
+#   .\run-testrail.ps1 -ExtraRobotArgs "--variable","TIME_PATTERN:NEEXISTUJE"
+#                                          # dalsi argumenty pro robot (napr. umyslne shozeny test)
 
 param(
     [int]$RunId = 4,
@@ -17,7 +19,8 @@ param(
     [string]$TestRailHost = "https://vojta1trial.testrail.io",
     [string]$Tag = "smoke",
     [string]$Include = "",
-    [switch]$AutoCreate
+    [switch]$AutoCreate,
+    [string[]]$ExtraRobotArgs = @()
 )
 
 if (-not $env:TESTRAIL_USER -or -not $env:TESTRAIL_API_KEY) {
@@ -28,6 +31,7 @@ if (-not $env:TESTRAIL_USER -or -not $env:TESTRAIL_API_KEY) {
 # 1) Spusteni testu
 $robotArgs = @("--outputdir", "results")
 if ($Include) { $robotArgs += @("--include", $Include) }
+$robotArgs += $ExtraRobotArgs
 robot @robotArgs tests
 $robotRc = $LASTEXITCODE
 
