@@ -1,0 +1,94 @@
+name: CI - testy a TestRail (TRCLI)
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "tests_ci/**"
+  workflow_dispatch:
+    inputs:
+      auto_create:
+        description: "Povolit TRCLI zalozit chybejici sekce a casy (-y). Jen pro prvni beh."
+        type: boolean
+        default: false
+      run_id:
+        description: "ID existujiciho test runu v TestRailu (prazdne = zalozit novy run)"
+        required: false
+        default: ""
+
+env:
+  TESTRAIL_HOST: https://vojta1trial.testrail.io
+  TESTRAIL_PROJECT: "Notepad – FlaUI"
+  TESTRAIL_PROJECT_ID: "2"
+  TESTRAIL_MILESTONE_ID: "3"
+  TAG: ci
+
+jobs:
+  robot-testrail:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Stazeni repozitare
+        uses: actions/checkout@v4
+
+      - name: Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Instalace Robot Frameworku a TRCLI
+        run: pip install robotframework trcli
+
+      - name: Spusteni testu
+        id: robot
+        continue-on-error: true
+        run: robot --name CI --outputdir results tests_ci
+
+      - name: Nahrani vysledku do TestRailu
+        if: always()
+        env:
+          TESTRAIL_USER: ${{ secrets.TESTRAIL_USER }}
+          TESTRAIL_API_KEY: ${{ secrets.TESTRAIL_API_KEY }}
+          AUTO_CREATE: ${{ inputs.auto_create }}
+          RUN_ID: ${{ inputs.run_id }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          BUILD_NUMBER: ${{ github.run_number }}
+        run: |
+          if [ -z "$TESTRAIL_USER" ] || [ -z "$TESTRAIL_API_KEY" ]; then
+            echo "Chybi secrets TESTRAIL_USER nebo TESTRAIL_API_KEY (Settings > Secrets and variables > Actions)."
+            exit 1
+          fi
+
+          CONFIRM="-n"
+          if [ "$AUTO_CREATE" = "true" ]; then CONFIRM="-y"; fi
+
+          RUN_ARGS=()
+          if [ -n "$RUN_ID" ]; then RUN_ARGS=(--run-id "$RUN_ID"); fi
+
+          NOW=$(TZ=Europe/Prague date +'%Y-%m-%d %H:%M')
+
+          trcli "$CONFIRM" \
+            -h "$TESTRAIL_HOST" \
+            --project-id "$TESTRAIL_PROJECT_ID" \
+            --project "$TESTRAIL_PROJECT" \
+            --username "$TESTRAIL_USER" \
+            --password "$TESTRAIL_API_KEY" \
+            parse_robot \
+            "${RUN_ARGS[@]}" \
+            --case-matcher auto \
+            --title "GitHub Actions #$BUILD_NUMBER - $NOW - tag:$TAG" \
+            --milestone-id "$TESTRAIL_MILESTONE_ID" \
+            --run-description "$RUN_URL" \
+            -f results/output.xml
+
+      - name: Ulozeni vysledku Robot Frameworku
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: robot-results
+          path: results
+
+      - name: Vyhodnoceni testu
+        if: steps.robot.outcome == 'failure'
+        run: |
+          echo "Nektery z testu selhal, detail je v artefaktu robot-results."
+          exit 1
