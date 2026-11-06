@@ -1,14 +1,14 @@
 *** Settings ***
 Documentation     Sdílené keywordy a lokátory pro testy Poznámkového bloku (Notepad).
-...               Lokátory jsou určené pro klasický Notepad ve Windows 10.
-...               Ve Windows 11 má nový Notepad jinou strukturu, lokátory ověř ve FlaUInspectu.
+...               Lokátory jsou určené pro klasický Notepad (Windows 10, ve Windows 11 s vypnutým aliasem).
+...               Editor je přímý potomek okna: ControlType Document, AutomationId 15 (ověřeno ve FlaUInspectu).
 Library           FlaUILibrary    uia=UIA3    screenshot_on_failure=True    screenshot_dir=results/screenshots
 
 
 *** Variables ***
 ${NOTEPAD_EXE}        notepad.exe
 ${MAIN_WINDOW}        //Window[@ClassName='Notepad']
-${EDITOR}             ${MAIN_WINDOW}//*[@ClassName='Edit']
+${EDITOR}             ${MAIN_WINDOW}/Document[@AutomationId='15']
 ${SAVE_DIALOG}        ${MAIN_WINDOW}/Window[@ClassName='#32770']
 ${TEST_TEXT}          Ahoj z Robot Frameworku a FlaUI
 ${NOTEPAD_PID}        ${EMPTY}
