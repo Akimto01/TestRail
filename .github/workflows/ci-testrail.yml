@@ -28,10 +28,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Stazeni repozitare
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Python 3.12
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v7
         with:
           python-version: "3.12"
 
@@ -82,7 +82,7 @@ jobs:
 
       - name: Ulozeni vysledku Robot Frameworku
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: robot-results
           path: results
