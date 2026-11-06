@@ -28,7 +28,7 @@ Vložení data a času klávesou F5 - Pozitivní (C17, NOTEPAD004)
     [Tags]    ALL    NOTEPAD004    regression
     Press Key    s'F5'    ${EDITOR}
     ${text}=    Get Text From Textbox    ${EDITOR}
-    Should Match Regexp    ${text}    \\d{1,2}:\\d{2}
+    Should Match Regexp    ${text}    ${TIME_PATTERN}
 
 Zavření s neuloženými změnami nabídne uložení - Pozitivní (C20, NOTEPAD005)
     [Tags]    ALL    NOTEPAD005    regression
