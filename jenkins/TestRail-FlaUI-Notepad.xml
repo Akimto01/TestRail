@@ -1,0 +1,139 @@
+<?xml version='1.1' encoding='UTF-8'?>
+<!-- Export Jenkins jobu TestRail-FlaUI-Notepad (Freestyle). Neobsahuje zadna hesla:
+     prihlasovaci udaje se berou z Jenkins credentials s ID "testrail-api". -->
+<project>
+  <description>Stahne repo Akimto01/TestRail, spusti FlaUI testy Notepadu (robot) a posle vysledky do TestRailu pres TRCLI, stejne jako na projektu.</description>
+  <keepDependencies>false</keepDependencies>
+  <properties>
+    <hudson.model.ParametersDefinitionProperty>
+      <parameterDefinitions>
+        <hudson.model.StringParameterDefinition>
+          <name>TAG</name>
+          <description>Tag do nazvu runu (jako %TAG% na projektu)</description>
+          <defaultValue>smoke</defaultValue>
+          <trim>true</trim>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>MILESTONE</name>
+          <description>ID milestonu v TestRailu (z URL)</description>
+          <defaultValue>3</defaultValue>
+          <trim>true</trim>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>RUN_ID</name>
+          <description>ID test runu v TestRailu (z URL)</description>
+          <defaultValue>4</defaultValue>
+          <trim>true</trim>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>PROJECT_ID</name>
+          <description>ID projektu v TestRailu (z URL)</description>
+          <defaultValue>2</defaultValue>
+          <trim>true</trim>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>TESTRAIL_PROJECT</name>
+          <description>Presny nazev projektu v TestRailu</description>
+          <defaultValue>Notepad – FlaUI</defaultValue>
+          <trim>true</trim>
+        </hudson.model.StringParameterDefinition>
+        <hudson.model.StringParameterDefinition>
+          <name>TESTRAIL_HOST</name>
+          <description>Adresa TestRailu</description>
+          <defaultValue>https://vojta1trial.testrail.io</defaultValue>
+          <trim>true</trim>
+        </hudson.model.StringParameterDefinition>
+      </parameterDefinitions>
+    </hudson.model.ParametersDefinitionProperty>
+  </properties>
+  <scm class="hudson.plugins.git.GitSCM">
+    <configVersion>2</configVersion>
+    <userRemoteConfigs>
+      <hudson.plugins.git.UserRemoteConfig>
+        <url>https://github.com/Akimto01/TestRail.git</url>
+      </hudson.plugins.git.UserRemoteConfig>
+    </userRemoteConfigs>
+    <branches>
+      <hudson.plugins.git.BranchSpec>
+        <name>*/main</name>
+      </hudson.plugins.git.BranchSpec>
+    </branches>
+    <doGenerateSubmoduleConfigurations>false</doGenerateSubmoduleConfigurations>
+    <submoduleCfg class="empty-list"/>
+    <extensions/>
+  </scm>
+  <canRoam>true</canRoam>
+  <disabled>false</disabled>
+  <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
+  <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
+  <triggers/>
+  <concurrentBuild>false</concurrentBuild>
+  <builders>
+    <hudson.tasks.BatchFile>
+      <command>@echo off
+rem === Priprava prostredi ===
+python -m venv .venv
+call .venv\Scripts\activate.bat
+python -m pip install -q -r requirements.txt trcli
+
+for /f %%i in ('powershell -NoProfile -Command "Get-Date -Format yyyy-MM-dd"') do set TODAY=%%i
+for /f %%i in ('powershell -NoProfile -Command "Get-Date -Format HH:mm"') do set NOW=%%i
+
+rem === 1) Spusteni testu ===
+robot --outputdir results tests
+
+rem === 2) Odeslani vysledku do TestRailu (stejne jako na projektu) ===
+trcli ^
+    -n ^
+    -h %TESTRAIL_HOST% ^
+    --project-id %PROJECT_ID% ^
+    --project "%TESTRAIL_PROJECT%" ^
+    --insecure ^
+    --username "%TESTRAIL_USER%" ^
+    --password "%TESTRAIL_API_KEY%" ^
+    parse_robot ^
+    --run-id %RUN_ID% ^
+    --case-matcher auto ^
+    --case-fields template_id:2 ^
+    --title "Notepad FlaUI %BUILD_DISPLAY_NAME% - %TODAY% %NOW% - tag:%TAG%" ^
+    --milestone-id %MILESTONE% ^
+    --run-description "%BUILD_URL%" ^
+    -f "results/output.xml"
+if errorlevel 1 (
+    echo TRCLI nenahralo vysledky do TestRailu.
+    exit /b 1
+)
+exit /b 0
+</command>
+      <configuredLocalRules/>
+    </hudson.tasks.BatchFile>
+  </builders>
+  <publishers>
+    <hudson.plugins.robot.RobotPublisher>
+      <archiveDirName>robot-plugin</archiveDirName>
+      <outputPath>results</outputPath>
+      <reportFileName></reportFileName>
+      <logFileName></logFileName>
+      <outputFileName></outputFileName>
+      <disableArchiveOutput>false</disableArchiveOutput>
+      <passThreshold>100.0</passThreshold>
+      <unstableThreshold>80.0</unstableThreshold>
+      <otherFiles></otherFiles>
+      <overwriteXAxisLabel></overwriteXAxisLabel>
+      <enableCache>true</enableCache>
+      <useArtifactManager>false</useArtifactManager>
+      <countSkippedTests>false</countSkippedTests>
+    </hudson.plugins.robot.RobotPublisher>
+  </publishers>
+  <buildWrappers>
+    <org.jenkinsci.plugins.credentialsbinding.impl.SecretBuildWrapper>
+      <bindings>
+        <org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
+          <credentialsId>testrail-api</credentialsId>
+          <usernameVariable>TESTRAIL_USER</usernameVariable>
+          <passwordVariable>TESTRAIL_API_KEY</passwordVariable>
+        </org.jenkinsci.plugins.credentialsbinding.impl.UsernamePasswordMultiBinding>
+      </bindings>
+    </org.jenkinsci.plugins.credentialsbinding.impl.SecretBuildWrapper>
+  </buildWrappers>
+</project>
