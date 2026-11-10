@@ -8,6 +8,7 @@
 #   .\run-testrail.ps1                     # vychozi hodnoty (run 4, milestone 3, -n)
 #   .\run-testrail.ps1 -Include smoke      # jen testy s tagem smoke
 #   .\run-testrail.ps1 -AutoCreate         # povoli zalozit chybejici casy (-y)
+#   .\run-testrail.ps1 -FromRun            # spusti jen testy vybrane v runu RunId v TestRailu
 #   .\run-testrail.ps1 -ExtraRobotArgs "--variable","TIME_PATTERN:NEEXISTUJE"
 #                                          # dalsi argumenty pro robot (napr. umyslne shozeny test)
 
@@ -20,6 +21,7 @@ param(
     [string]$Tag = "smoke",
     [string]$Include = "",
     [switch]$AutoCreate,
+    [switch]$FromRun,
     [string[]]$ExtraRobotArgs = @()
 )
 
@@ -30,6 +32,13 @@ if (-not $env:TESTRAIL_USER -or -not $env:TESTRAIL_API_KEY) {
 
 # 1) Spusteni testu
 $robotArgs = @("--outputdir", "results")
+if ($FromRun) {
+    # Vyber testu podle obsahu runu v TestRailu (podle automation_id jeho casu)
+    $env:TESTRAIL_HOST = $TestRailHost
+    python tools\select-tests.py --run-id $RunId
+    if ($LASTEXITCODE -ne 0) { exit 1 }
+    $robotArgs += @("--argumentfile", "results\selected-tests.args")
+}
 if ($Include) { $robotArgs += @("--include", $Include) }
 $robotArgs += $ExtraRobotArgs
 robot @robotArgs tests
