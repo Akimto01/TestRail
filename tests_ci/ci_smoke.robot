@@ -1,7 +1,7 @@
 *** Settings ***
 Documentation     Rychlé testy bez uživatelského rozhraní pro ověření CI pipeline
 ...               (GitHub Actions + TRCLI). Běží na Linuxu, nepotřebují FlaUI ani Notepad.
-...               Názvy jsou ve formátu jako v bance: NAME (ATID).
+...               Názvy jsou ve formátu jako na projektu: NAME (ATID).
 Library           Collections
 Library           String
 

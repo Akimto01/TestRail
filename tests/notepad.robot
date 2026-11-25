@@ -1,7 +1,7 @@
 *** Settings ***
 Documentation     Základní sada automatizovaných testů Poznámkového bloku pomocí FlaUILibrary.
 ...               Slouží jako cvičný projekt pro integraci výsledků s TestRailem.
-...               Názvy testů mají formát jako v bance: NAME (EXTID, ATID), kde EXTID je ID casu v TestRailu.
+...               Názvy testů mají formát jako na projektu: NAME (EXTID, ATID), kde EXTID je ID casu v TestRailu.
 Resource          ../resources/notepad.resource
 Test Setup        Open Notepad
 Test Teardown     Close Notepad

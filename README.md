@@ -79,3 +79,10 @@ Jenkins musí běžet pod přihlášeným uživatelem (ne jako služba), jinak F
 Workflow `.github/workflows/ci-testrail.yml` spouští rychlé testy bez UI ze složky `tests_ci/`
 na Linuxu a výsledky posílá přes TRCLI do nového runu. Přihlašovací údaje jsou v repository
 secrets `TESTRAIL_USER` a `TESTRAIL_API_KEY`.
+
+## Dokumentace
+
+Návody pro kolegy (Markdown i Word, se screenshoty) jsou ve složce [`docs/manualy`](docs/manualy):
+
+- [Manuál 1: Výsledky automatických testů v TestRailu](docs/manualy/manual-1-vysledky-automatickych-testu.md) – nastavení, spuštění vybraných testů z runu přes Jenkins, příkaz TRCLI a řešení problémů.
+- [Manuál 2: Reporty, milestony a další vizualizace výsledků](docs/manualy/manual-2-reporty-a-milestony.md) – milestony, reporty, report po buildu, vlastní stavy, test plány s konfiguracemi, verze, pokrytí požadavků, UI script a trend v Jenkinsu.
