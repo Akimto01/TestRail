@@ -1,0 +1,49 @@
+name: Vojta - trend poslednich runu
+description: Na strance test runu zobrazi graf uspesnosti (% passed) poslednich 10 samostatnych runu projektu
+author: Vojtech Cermak
+version: 1.0
+includes: ^runs/view
+excludes:
+
+js:
+$(document).ready(function () {
+    var m = window.location.search.match(/runs\/view\/(\d+)/);
+    if (!m) { return; }
+
+    function api(endpoint) {
+        return $.ajax({ url: 'index.php?/api/v2/' + endpoint, type: 'GET', dataType: 'json', contentType: 'application/json' });
+    }
+
+    var panel = $('<div id="vojta-trend"><div class="vojta-trend-title">Trend poslednich runu (% passed)</div><div class="vojta-trend-chart">Nacitam...</div><div class="vojta-trend-note">Samostatne runy projektu, nejnovejsi vpravo. UI script: Vojta - trend poslednich runu</div></div>');
+    var target = $('#content-inner').length ? $('#content-inner') : $('#content');
+    target.prepend(panel);
+
+    api('get_run/' + m[1]).done(function (run) {
+        api('get_runs/' + run.project_id + '&limit=10').done(function (data) {
+            var runs = (data.runs || data).slice(0, 10).reverse();
+            var w = 640, h = 170, pad = 30, bw = Math.floor((w - pad) / Math.max(runs.length, 1)) - 12;
+            var svg = '<svg width="' + w + '" height="' + (h + 40) + '" xmlns="http://www.w3.org/2000/svg">';
+            svg += '<line x1="' + pad + '" y1="' + h + '" x2="' + w + '" y2="' + h + '" stroke="#999"/>';
+            $.each(runs, function (i, r) {
+                var total = r.passed_count + r.blocked_count + r.untested_count + r.retest_count + r.failed_count;
+                for (var k = 1; k <= 7; k++) { total += (r['custom_status' + k + '_count'] || 0); }
+                var pct = total ? Math.round(100 * r.passed_count / total) : 0;
+                var bh = Math.round((h - 20) * pct / 100);
+                var x = pad + i * (bw + 12) + 6;
+                var color = pct === 100 ? '#3cb850' : (pct >= 80 ? '#f0b400' : '#e40046');
+                var current = String(r.id) === m[1];
+                svg += '<g><title>R' + r.id + ' ' + $('<div>').text(r.name).html() + ': ' + pct + ' % passed</title>';
+                svg += '<rect x="' + x + '" y="' + (h - bh) + '" width="' + bw + '" height="' + bh + '" fill="' + color + '"' + (current ? ' stroke="#2a3f5f" stroke-width="3"' : '') + '/>';
+                svg += '<text x="' + (x + bw / 2) + '" y="' + (h - bh - 5) + '" text-anchor="middle" font-size="12">' + pct + ' %</text>';
+                svg += '<text x="' + (x + bw / 2) + '" y="' + (h + 16) + '" text-anchor="middle" font-size="12"' + (current ? ' font-weight="bold"' : '') + '>R' + r.id + '</text></g>';
+            });
+            svg += '</svg>';
+            panel.find('.vojta-trend-chart').html(svg);
+        }).fail(function () { panel.find('.vojta-trend-chart').text('Nepodarilo se nacist runy (je zapnuta session authentication for API?).'); });
+    }).fail(function () { panel.find('.vojta-trend-chart').text('Nepodarilo se nacist run (je zapnuta session authentication for API?).'); });
+});
+
+css:
+#vojta-trend { background: #fff; border: 1px solid #d0d7de; border-radius: 4px; padding: 10px 14px; margin: 10px 0 14px 0; }
+#vojta-trend .vojta-trend-title { font-weight: bold; margin-bottom: 6px; }
+#vojta-trend .vojta-trend-note { color: #777; font-size: 11px; }

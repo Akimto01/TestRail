@@ -27,6 +27,7 @@ trcli ^
     --run-id %RUN_ID% ^
     --case-matcher auto ^
     --case-fields template_id:2 ^
+    --result-fields "version:%APP_VERSION%" ^
     --milestone-id %MILESTONE% ^
     --run-description "%BUILD_URL%" ^
     -f "results/output.xml"

@@ -34,6 +34,7 @@ a předává je do buildu jako proměnné `TESTRAIL_USER` a `TESTRAIL_API_KEY`.
 | `PROJECT_ID` | 2 | `--project-id` |
 | `TESTRAIL_PROJECT` | Notepad – FlaUI | `--project` |
 | `TESTRAIL_HOST` | https://vojta1trial.testrail.io | `-h` |
+| `APP_VERSION` | 1.0.0 | Verze aplikace, TRCLI ji zapíše do pole Version u výsledků (`--result-fields`) |
 | `REPORT_TEMPLATE_ID` | 1 | ID API šablony reportu; prázdné = report se negeneruje |
 
 ## Požadavky na Jenkins
